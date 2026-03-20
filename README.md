@@ -26,5 +26,6 @@ docker run -p 8080:8080 \
   -e DATABASE_URL=postgres://user:pass@host:5432/db?sslmode=disable \
   gamexost/url-shortener:latest
 ```
+- P.S. только как я понял через докер хаб БД придется самостоятельно поднимать и запускать в докере
 `postgres://user:password@host:port/bd_name?sslmode=disable`
 
