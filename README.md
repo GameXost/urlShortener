@@ -26,3 +26,5 @@ docker run -p 8080:8080 \
   -e DATABASE_URL=postgres://user:pass@host:5432/db?sslmode=disable \
   gamexost/url-shortener:latest
 ```
+`postgres://user:password@host:port/bd_name?sslmode=disable`
+
