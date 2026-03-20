@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0f0f0f;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            font-weight: normal;
+            color: #888;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+        }
+
+        h1 span { color: #e8ff47; }
+
+        .input-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            flex: 1;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 3px;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        input:focus { border-color: #e8ff47; }
+        input::placeholder { color: #444; }
+
+        button {
+            background: #e8ff47;
+            border: none;
+            border-radius: 3px;
+            color: #0f0f0f;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 0.75rem 1.25rem;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        button:hover { opacity: 0.85; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        #result { min-height: 2rem; }
+
+        .result-box {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-left: 3px solid #e8ff47;
+            border-radius: 3px;
+            padding: 0.875rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .result-box a {
+            color: #e8ff47;
+            text-decoration: none;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .result-box a:hover { text-decoration: underline; }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #888;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover { border-color: #e8ff47; color: #e8ff47; }
+
+        .error {
+            color: #ff4f4f;
+            font-size: 0.85rem;
+            padding: 0.5rem 0;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>// <span>url</span> shortener</h1>
+
+    <div class="input-row">
+        <input type="text" id="url" placeholder="https://example.com" />
+        <button id="btn" onclick="shorten()">Shorten →</button>
+    </div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    async function shorten() {
+      const input = document.getElementById('url');
+      const btn   = document.getElementById('btn');
+      const result = document.getElementById('result');
+      const url = input.value.trim();
+
+      if (!url) return;
+
+      btn.disabled = true;
+      btn.textContent = '...';
+      result.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url_to_save: url })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          result.innerHTML = `<div class="error">error: ${text.trim()}</div>`;
+          return;
+        }
+
+        const data = await res.json();
+        const shortURL = `${window.location.origin}/${data.alias}`;
+
+        result.innerHTML = `
+          <div class="result-box">
+            <a href="${shortURL}" target="_blank">${shortURL}</a>
+            <button class="copy-btn" onclick="copy('${shortURL}', this)">copy</button>
+          </div>`;
+      } catch (e) {
+        result.innerHTML = `<div class="error">error: could not reach server</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Shorten →';
+      }
+    }
+
+    function copy(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'copied!';
+        setTimeout(() => btn.textContent = 'copy', 1500);
+      });
+    }
+
+    document.getElementById('url').addEventListener('keydown', e => {
+      if (e.key === 'Enter') shorten();
+    });
+</script>
+</body>
+</html>

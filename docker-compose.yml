@@ -1,0 +1,25 @@
+services:
+  shortener:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      STORAGE_TYPE: postgres #memory/postgres
+      DATABASE_URL: postgres://postgres:gopython@db:5432/url
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: gopython
+      POSTGRES_DB: url
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5

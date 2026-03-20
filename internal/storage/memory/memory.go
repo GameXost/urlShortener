@@ -35,8 +35,8 @@ func NewCache(capacity int) *Cache {
 }
 
 func (c *Cache) GetURL(ctx context.Context, alias string) (string, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	node, has := c.aliasMap[alias]
 	if !has {
